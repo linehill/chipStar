@@ -208,7 +208,7 @@ static bool parseHeader(const InstWord *&WordBuffer, size_t &NumWords) {
   }
   ++WordBuffer;
 
-  if (*WordBuffer < getSPVVersion(1, 0) || *WordBuffer > getSPVVersion(1, 2)) {
+  if (*WordBuffer < getSPVVersion(1, 0) || *WordBuffer > getSPVVersion(1, 4)) {
     logError("Unsupported SPIR-V version.");
     return false;
   }
