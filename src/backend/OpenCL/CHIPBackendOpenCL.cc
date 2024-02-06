@@ -228,14 +228,16 @@ static void memCopyToImage(cl_command_queue CmdQ, cl_mem Image,
 ///
 /// Returns the list of annotated pointers.
 static std::unique_ptr<std::vector<std::shared_ptr<void>>>
-annotateSvmPointers(const CHIPContextOpenCL &Ctx, cl_kernel KernelAPIHandle) {
-  // By default we pass every allocated SVM pointer at this point to
-  // the clSetKernelExecInfo() since any of them could be potentially
-  // be accessed indirectly by the kernel.
-  //
-  // TODO: Optimization. Don't call clSetKernelExecInfo() if the
-  //       kernel is known not to access any buffer indirectly
-  //       discovered through kernel code inspection.
+annotateSvmPointers(const CHIPContextOpenCL &Ctx, CHIPKernelOpenCL &Kernel) {
+
+  // If we have determined that the module does not have indirect
+  // global memory accesses (IGBAs; see HipIGBADetectorPass), we may
+  // skip the annotation.
+  if (!Kernel.getModule()->getInfo().MayHaveIGBAs)
+    return nullptr;
+
+  cl_kernel KernelAPIHandle = Kernel.get()->get();
+
   std::vector<void *> SvmAnnotationList;
   std::unique_ptr<std::vector<std::shared_ptr<void>>> SvmKeepAlives;
   LOCK(Ctx.ContextMtx); // CHIPContextOpenCL::SvmMemory
@@ -1231,8 +1233,7 @@ CHIPQueueOpenCL::launchImpl(chipstar::ExecItem *ExecItem) {
   LOCK(Backend->DubiousLockOpenCL);
 #endif
 
-  auto SvmAllocationsToKeepAlive =
-      annotateSvmPointers(*OclContext, Kernel->get()->get());
+  auto SvmAllocationsToKeepAlive = annotateSvmPointers(*OclContext, *Kernel);
 
   auto SyncQueuesEventHandles = getSyncQueuesEventHandles();
   auto Status = clEnqueueNDRangeKernel(

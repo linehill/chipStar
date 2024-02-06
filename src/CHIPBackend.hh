@@ -858,7 +858,7 @@ class Module : public ihipModule_t {
   /// this module is attached to.
   bool DeviceVariablesInitialized_ = false;
 
-  OpenCLFunctionInfoMap FuncInfos_;
+  SPVModuleInfo ModuleInfo_;
 
 protected:
   uint8_t *FuncIL_;
@@ -1000,6 +1000,8 @@ public:
   void deallocateDeviceVariablesNoLock(chipstar::Device *Device);
 
   SPVFuncInfo *findFunctionInfo(const std::string &FName);
+
+  const SPVModuleInfo &getInfo() const noexcept { return ModuleInfo_; }
 
   const SPVModule &getSourceModule() const { return *Src_; }
 };
