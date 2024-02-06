@@ -1753,9 +1753,15 @@ void CHIPBackendOpenCL::initializeImpl() {
   logDebug("CHIP_DEVICE={} Selected OpenCL device {}",
            ChipEnvVars.getDeviceIdx(), Device.getInfo<CL_DEVICE_NAME>());
 
-  // Create context which has devices
-  // Create queues that have devices each of which has an associated context
+#ifdef CHIP_OCL_1DEV_CONTEXTS
+  cl::Context Ctx(Device);
+#else
+  // In CUDA/HIP contexts are associated with single device but we
+  // need multi-device contexts if we want to support efficient
+  // peer-to-peer accesses and portable memories (hipHostMallocPortable).
   cl::Context Ctx(SupportedDevices);
+#endif
+
   CHIPContextOpenCL *ChipContext =
       new CHIPContextOpenCL(Ctx, Device, SelectedPlatform);
   ::Backend->addContext(ChipContext);

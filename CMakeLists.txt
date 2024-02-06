@@ -231,6 +231,8 @@ option(OCML_BASIC_ROUNDED_OPERATIONS "Use OCML implementations for devicelib fun
 option(CHIP_MALI_GPU_WORKAROUNDS "Apply work-arounds for avoiding SPIR-V \
 consumption issues in ARM Mali GPU driver." OFF)
 
+set(CHIP_OCL_1DEV_CONTEXTS "Create OpenCL contexts with single device. This may improve performance on some multi-device platforms. NOTE: this will disable peer-to-peer access and portable host allocations." OFF)
+
 if(CHIP_EXT_FLOAT_ATOMICS)
   message(DEPRECATION "-DCHIP_EXT_FLOAT_ATOMICS is no longer effective.")
 endif()
