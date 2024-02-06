@@ -228,20 +228,18 @@ static void memCopyToImage(cl_command_queue CmdQ, cl_mem Image,
 ///
 /// Returns the list of annotated pointers.
 static std::unique_ptr<std::vector<std::shared_ptr<void>>>
-annotateIndirectPointers(const CHIPContextOpenCL &Ctx,
+annotateIndirectPointers(const CHIPContextOpenCL &Ctx, CHIPKernelOpenCL &Kernel,
                          cl_kernel KernelAPIHandle) {
-  // By default we pass every allocated SVM/USM pointer at this point to
-  // the clSetKernelExecInfo() since any of them could be potentially
-  // be accessed indirectly by the kernel.
-  //
-  // TODO: Optimization. Don't call clSetKernelExecInfo() if the
-  //       kernel is known not to access any buffer indirectly
-  //       discovered through kernel code inspection.
-  //
   // NOTE: For USM tried to use CL_KERNEL_EXEC_INFO_​INDIRECT_*_ACCESS_INTEL
   //       instead of CL_KERNEL_EXEC_INFO_​USM_PTRS_INTEL but that lead to
   //       CL_OUT_OF_RESOURCES errors on clEnqueueNDRangeKernel() calls and
   //       segmentation faults inside the driver on multi-threaded cases.
+
+  // If we have determined that the module does not have indirect
+  // global memory accesses (IGBAs; see HipIGBADetectorPass), we may
+  // skip the annotation.
+  if (!Kernel.getModule()->getInfo().MayHaveIGBAs)
+    return nullptr;
 
   std::unique_ptr<std::vector<std::shared_ptr<void>>> AllocKeepAlives;
   std::vector<void *> AnnotationList;
@@ -1249,7 +1247,7 @@ CHIPQueueOpenCL::launchImpl(chipstar::ExecItem *ExecItem) {
 #endif
 
   auto AllocationsToKeepAlive =
-      annotateIndirectPointers(*OclContext, KernelHandle);
+      annotateIndirectPointers(*OclContext, *Kernel, KernelHandle);
 
   auto SyncQueuesEventHandles = addDependenciesQueueSync(LaunchEvent);
   auto Status = clEnqueueNDRangeKernel(
