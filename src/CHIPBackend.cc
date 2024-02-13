@@ -1759,7 +1759,8 @@ chipstar::Queue::RegisteredVarCopy(chipstar::ExecItem *ExecItem,
 
 void chipstar::Queue::launch(chipstar::ExecItem *ExItem) {
   std::stringstream InfoStr;
-  InfoStr << "\nLaunching kernel " << ExItem->getKernel()->getName() << "\n";
+  const auto &KernelName = ExItem->getKernel()->getName();
+  InfoStr << "\nLaunching kernel " << KernelName << "\n";
   InfoStr << "GridDim: <" << ExItem->getGrid().x << ", " << ExItem->getGrid().y
           << ", " << ExItem->getGrid().z << ">";
   InfoStr << " BlockDim: <" << ExItem->getBlock().x << ", "
@@ -1774,6 +1775,17 @@ void chipstar::Queue::launch(chipstar::ExecItem *ExItem) {
     if (Arg.Kind == SPVTypeKind::Pointer && !Arg.isWorkgroupPtr()) {
       void *PtrVal = *static_cast<void **>(const_cast<void *>(Arg.Data));
       InfoStr << " (" << PtrVal << ")";
+
+      // Non-mapped hipHostMalloc allocations are not accessible from
+      // kernels. Warn about this.
+      const auto *Dev = ::Backend->getActiveDevice();
+      if (const auto *AI = Dev->AllocTracker->getAllocInfo(PtrVal))
+        if (!Dev->hasUnifiedAddressing() &&
+            AI->MemoryType == hipMemoryTypeHost && !AI->Flags.isMapped())
+          logWarn("Passing non-mapped hipHostMalloc pointer to kernel."
+                  "\nKernel: {}"
+                  "\nArg position: {}",
+                  KernelName, Arg.Index);
     }
     InfoStr << "\n";
   };
