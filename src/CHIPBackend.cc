@@ -1530,18 +1530,18 @@ chipstar::Queue::getSyncQueuesLastEvents() {
   return EventsToWaitOn;
 }
 
-template <typename Fn>
-static void
-syncMappedHostMemsAround(const chipstar::Device *Dev,
-                            std::initializer_list<const void *> Ptrs,
-                            Fn Function) {
+/// Queues unmap commands for device-mapped hipHostMalloc allocations and then
+/// calls 'Fn'. After the call, queues map commands for the same allocations.
+static void syncMappedHostMemsAround(const chipstar::Device *Dev,
+                                     std::initializer_list<const void *> Ptrs,
+                                     std::function<void(void)> Fn) {
 
   for (const auto *Ptr : Ptrs)
     if (const auto *AI = Dev->AllocTracker->getAllocInfo(Ptr))
       if (Dev->hasUnifiedAddressing() || AI->isMappedHostMem())
         ::Backend->getActiveDevice()->getDefaultQueue()->MemUnmap(AI);
 
-  Function();
+  Fn();
 
   for (const auto *Ptr : Ptrs)
     if (const auto *AI = Dev->AllocTracker->getAllocInfo(Ptr))
