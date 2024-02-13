@@ -65,17 +65,14 @@ int main(int argc, char *argv[]) {
   // aborting the process (unless the env is set already).
   setenv("CHIP_HOST_IGNORES_DEVICE_ABORT", "1", 1);
 
-  uint NumThreads = 1;
+  int *RetVal;
+  hipMalloc(&RetVal, 4);
 
-  void *RetValVoid;
-  hipHostMalloc(&RetValVoid, 4 * NumThreads);
-  auto RetVal = reinterpret_cast<int *>(RetValVoid);
-
-  RetVal[0] = 0;
+  hipMemsetD32(RetVal, 0, 1);
   hipLaunchKernelGGL(cond_abort, dim3(1), dim3(1), 0, 0, RetVal);
   hipStreamSynchronize(0);
 
-  RetVal[0] = 1;
+  hipMemsetD32(RetVal, 1, 1);
   hipLaunchKernelGGL(cond_abort, dim3(1), dim3(1), 0, 0, RetVal);
   hipStreamSynchronize(0);
 

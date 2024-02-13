@@ -7,13 +7,16 @@ __global__ void addOne(int *A) { A[0] = 1; }
 
 void testHipHostMalloc() {
   hipError_t Status;
-  int *A_h;
+  int *A_h, *A_d;
   Status = hipHostMalloc(reinterpret_cast<void **>(&A_h), SIZE,
-                         hipHostMallocDefault);
+                         hipHostMallocMapped);
   assert(Status == hipSuccess);
+  Status = hipHostGetDevicePointer(reinterpret_cast<void **>(&A_d), A_h, 0);
+  assert(Status == hipSuccess);
+
   A_h[0] = 0;
 
-  hipLaunchKernelGGL(addOne, 1, 1, 0, 0, static_cast<int *>(A_h));
+  hipLaunchKernelGGL(addOne, 1, 1, 0, 0, A_d);
   hipDeviceSynchronize();
   if (A_h[0] != 1) {
     std::cout << "FAILED\n";

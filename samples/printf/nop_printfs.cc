@@ -46,22 +46,20 @@ __global__ void nop_str_arg(int *out) {
 }
 
 int main(int argc, char *argv[]) {
-  uint num_threads = 1;
   uint failures = 0;
 
-  void *retval_void;
-  CHECK(hipHostMalloc(&retval_void, 4 * num_threads), hipSuccess);
-  auto retval = reinterpret_cast<int *>(retval_void);
+  int *retval;
+  CHECK(hipMalloc(&retval, 4), hipSuccess);
 
   hipLaunchKernelGGL(nop_str_arg, dim3(1), dim3(1), 0, 0, retval);
-  hipStreamSynchronize(0);
 
-  for (uint ii = 0; ii != num_threads; ++ii) {
+  int num_parsed_args = 0;
+  hipMemcpy(&num_parsed_args, retval, sizeof(int), hipMemcpyDeviceToHost);
 #ifdef __HIP_PLATFORM_AMD__
-    CHECK(retval[ii], strlen(""));
+  CHECK(num_parsed_args, strlen(""));
 #else
-    CHECK(retval[ii], 1);
+  CHECK(num_parsed_args, 1);
 #endif
-  }
   printf((failures == 0) ? "PASSED!\n" : "FAILED!\n");
+  return !!failures;
 }

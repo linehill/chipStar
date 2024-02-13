@@ -62,40 +62,43 @@ int main(int argc, char *argv[]) {
   uint num_threads = 1;
   uint failures = 0;
 
-  void *retval_void;
-  CHECK(hipHostMalloc(&retval_void, 4 * num_threads), hipSuccess);
-  auto retval = reinterpret_cast<int *>(retval_void);
+  void *retval_void_h, *retval_void_d;
+  CHECK(hipHostMalloc(&retval_void_h, 4 * num_threads, hipHostMallocMapped),
+        hipSuccess);
+  CHECK(hipHostGetDevicePointer(&retval_void_d, retval_void_h, 0), hipSuccess);
+  auto retval_h = reinterpret_cast<int *>(retval_void_h);
+  auto retval_d = reinterpret_cast<int *>(retval_void_d);
 
-  hipLaunchKernelGGL(no_args, dim3(1), dim3(1), 0, 0, retval);
+  hipLaunchKernelGGL(no_args, dim3(1), dim3(1), 0, 0, retval_d);
   hipStreamSynchronize(0);
 
   for (uint ii = 0; ii != num_threads; ++ii) {
 #ifdef __HIP_PLATFORM_AMD__
-    CHECK(retval[ii], strlen("Hello there.\n"));
+    CHECK(retval_h[ii], strlen("Hello there.\n"));
 #else
-    CHECK(retval[ii], 0);
+    CHECK(retval_h[ii], 0);
 #endif
   }
 
-  hipLaunchKernelGGL(literal_str_arg, dim3(1), dim3(1), 0, 0, retval);
+  hipLaunchKernelGGL(literal_str_arg, dim3(1), dim3(1), 0, 0, retval_d);
   hipStreamSynchronize(0);
 
   for (uint ii = 0; ii != num_threads; ++ii) {
 #ifdef __HIP_PLATFORM_AMD__
-    CHECK(retval[ii], 0);
+    CHECK(retval_h[ii], 0);
 #else
-    CHECK(retval[ii], 2);
+    CHECK(retval_h[ii], 2);
 #endif
   }
 
-  hipLaunchKernelGGL(var_str_arg, dim3(1), dim3(1), 0, 0, retval);
+  hipLaunchKernelGGL(var_str_arg, dim3(1), dim3(1), 0, 0, retval_d);
   hipStreamSynchronize(0);
 
   for (uint ii = 0; ii != num_threads; ++ii) {
 #ifdef __HIP_PLATFORM_AMD__
-    CHECK(retval[ii], 0);
+    CHECK(retval_h[ii], 0);
 #else
-    CHECK(retval[ii], 2);
+    CHECK(retval_h[ii], 2);
 #endif
   }
   printf((failures == 0) ? "PASSED!\n" : "FAILED!\n");

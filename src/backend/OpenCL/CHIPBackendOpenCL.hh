@@ -171,7 +171,7 @@ private:
   SVMemoryRegion SvmMemory;
 
 public:
-  bool allDevicesSupportFineGrainSVMorUSM();
+  bool allDevicesSupportFineGrainSVMorUSM() const;
   CHIPContextOpenCL(cl::Context CtxIn, cl::Device Dev, cl::Platform Plat);
   virtual ~CHIPContextOpenCL() {
     logTrace("CHIPContextOpenCL::~CHIPContextOpenCL");
@@ -246,6 +246,11 @@ public:
   }
 
   bool hasBallot() const noexcept { return HasSubgroupBallot_; }
+
+  bool hasUnifiedAddressing() const override {
+    return static_cast<const CHIPContextOpenCL *>(getContext())
+        ->allDevicesSupportFineGrainSVMorUSM();
+  }
 };
 
 class CHIPQueueOpenCL : public chipstar::Queue {

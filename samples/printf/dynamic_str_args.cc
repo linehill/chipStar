@@ -67,34 +67,37 @@ int main(int argc, char *argv[]) {
   uint num_threads = 1;
   uint failures = 0;
 
-  void *retval_void;
-  CHECK(hipHostMalloc(&retval_void, 4 * num_threads), hipSuccess);
-  auto io = reinterpret_cast<int *>(retval_void);
+  void *retval_void_h, *retval_void_d;
+  CHECK(hipHostMalloc(&retval_void_h, 4 * num_threads, hipHostMallocMapped),
+        hipSuccess);
+  CHECK(hipHostGetDevicePointer(&retval_void_d, retval_void_h, 0), hipSuccess);
+  auto *io_h = reinterpret_cast<int *>(retval_void_h);
+  auto *io_d = reinterpret_cast<int *>(retval_void_d);
 
-  io[0] = 1;
-  hipLaunchKernelGGL(conditional_string, dim3(1), dim3(1), 0, 0, io);
+  io_h[0] = 1;
+  hipLaunchKernelGGL(conditional_string, dim3(1), dim3(1), 0, 0, io_d);
   hipStreamSynchronize(0);
 
   // Just smoke check the return values, the std output is verified by ctest.
-  CHECK_GT(io[0], 1);
+  CHECK_GT(io_h[0], 1);
 
-  io[0] = 1;
+  io_h[0] = 1;
 
-  hipLaunchKernelGGL(array_of_strings, dim3(1), dim3(1), 0, 0, io);
+  hipLaunchKernelGGL(array_of_strings, dim3(1), dim3(1), 0, 0, io_d);
   hipStreamSynchronize(0);
 
-  CHECK_GT(io[0], 0);
+  CHECK_GT(io_h[0], 0);
 
   const char *TrulyDyn = "Extremely dynamic printf str!\n";
   char *TrulyDynB;
   hipHostMalloc(&TrulyDynB, strlen(TrulyDyn) + 1);
   memcpy(TrulyDynB, TrulyDyn, strlen(TrulyDyn) + 1);
 
-  hipLaunchKernelGGL(host_defined_strings, dim3(1), dim3(1), 0, 0, io,
+  hipLaunchKernelGGL(host_defined_strings, dim3(1), dim3(1), 0, 0, io_d,
                      TrulyDynB);
   hipStreamSynchronize(0);
 
-  CHECK_GT(io[0], 1);
+  CHECK_GT(io_h[0], 1);
 
   printf((failures == 0) ? "PASSED!\n" : "FAILED!\n");
   return (failures == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
