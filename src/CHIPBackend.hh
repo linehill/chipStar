@@ -464,6 +464,14 @@ struct AllocationInfo {
   bool isDeviceAccessible() const {
     return MemoryType == hipMemoryTypeHost ? Flags.isMapped() : true;
   }
+
+  /// True if a host allocation with hipHostRegisterMapped or
+  /// hipHostMallocMapped flag.
+  ///
+  /// This query is unaffacted by unified addressing property.
+  bool isMappedHostMem() const noexcept {
+    return MemoryType == hipMemoryTypeHost && Flags.isMapped();
+  }
 };
 
 /**
@@ -1413,6 +1421,7 @@ public:
    * was created with
    */
   chipstar::Context *getContext();
+  const chipstar::Context *getContext() const;
 
   /**
    * @brief Construct an additional queue for this device
@@ -1599,6 +1608,8 @@ public:
   void prepareDeviceVariables(HostPtr Ptr);
   void invalidateDeviceVariables();
   void deallocateDeviceVariables();
+
+  virtual bool hasUnifiedAddressing() const { return false; }
 
 protected:
   /**

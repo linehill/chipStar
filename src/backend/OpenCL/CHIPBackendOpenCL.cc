@@ -974,7 +974,7 @@ CHIPKernelOpenCL::CHIPKernelOpenCL(cl::Kernel ClKernel, CHIPDeviceOpenCL *Dev,
 // CHIPContextOpenCL
 //*************************************************************************
 
-bool CHIPContextOpenCL::allDevicesSupportFineGrainSVMorUSM() {
+bool CHIPContextOpenCL::allDevicesSupportFineGrainSVMorUSM() const {
   return SupportsFineGrainSVM || SupportsIntelUSM;
 }
 
