@@ -54,6 +54,7 @@ list(APPEND NON_PARALLEL_TESTS "fp16")
 list(APPEND NON_PARALLEL_TESTS "SimpleConvolution")
 list(APPEND NON_PARALLEL_TESTS "Unit_hipHostMalloc_Basic")
 list(APPEND NON_PARALLEL_TESTS "Unit_hipMalloc_LoopRegressionAllocFreeCycles")
+list(APPEND NON_PARALLEL_TESTS "Unit_hipMultiThreadStreams1_AsyncAsync")
 list(APPEND NON_PARALLEL_TESTS "DCT")
 list(APPEND NON_PARALLEL_TESTS "Unit_hipMultiThreadStreams1_AsyncSync")
 list(APPEND NON_PARALLEL_TESTS "FastWalshTransform")
@@ -70,15 +71,15 @@ list(APPEND NON_PARALLEL_TESTS "Unit_hipMemsetAsync_SetMemoryWithOffset")
 list(APPEND NON_PARALLEL_TESTS "BitonicSort")
 list(APPEND NON_PARALLEL_TESTS "FloydWarshall")
 
-list(APPEND FAILING_FOR_ALL "Unit_hipMemcpyAsync_hipMultiMemcpyMultiThread - int")
-list(APPEND FAILING_FOR_ALL "Unit_hipMemcpyAsync_hipMultiMemcpyMultiThread - float")
-list(APPEND FAILING_FOR_ALL "Unit_hipMemcpyAsync_hipMultiMemcpyMultiThread - double")
-list(APPEND FAILING_FOR_ALL "Unit_hipMultiThreadStreams1_AsyncAsync")
-list(APPEND FAILING_FOR_ALL "Unit_hipMemset2DAsync_MultiThread")
-list(APPEND FAILING_FOR_ALL "abort")
-list(APPEND FAILING_FOR_ALL "abort2")
-list(APPEND FAILING_FOR_ALL "TestAssert")
-list(APPEND FAILING_FOR_ALL "TestAssertFail")
+# This test gets enabled only if LLVM' FileCheck tool is found in PATH.
+# It fails with "error: cannot find ROCm device library;
+#  provide its path via '--rocm-path' or '--rocm-device-lib-path', or pass
+#  '-nogpulib' to build without ROCm device library"
+list(APPEND FAILING_FOR_ALL "Unit_hipMemset2DAsync_MultiThread") # causes hung processes on i915 driver
+list(APPEND FAILING_FOR_ALL "abort") # causes hung processes on i915 driver
+list(APPEND FAILING_FOR_ALL "abort2") # causes hung processes on i915 driver
+list(APPEND FAILING_FOR_ALL "TestAssert") # causes hung processes on i915 driver
+list(APPEND FAILING_FOR_ALL "TestAssertFail")# causes hung processes on i915 driver 
 list(APPEND FAILING_FOR_ALL "Unit_hipGraphDestroyNode_DestroyDependencyNode") # SEGFAULT
 list(APPEND FAILING_FOR_ALL "Unit_hipGraphAddHostNode_ClonedGraphwithHostNode") # Correctness
 list(APPEND FAILING_FOR_ALL "Unit_hipStreamPerThread_Basic") # SyncQueues refactor
@@ -509,12 +510,12 @@ list(APPEND CPU_OPENCL_FAILED_TESTS "Unit_hipEvent") # Failed
 list(APPEND CPU_OPENCL_FAILED_TESTS "hipMultiThreadAddCallback") # SEGFAULT
 
 # iGPU OpenCL Unit Test Failures
+list(APPEND IGPU_OPENCL_FAILED_TESTS "syncthreadsExitedThreads") # Timeout
 list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipMultiThreadStreams1_AsyncSame") # invalid free()
 list(APPEND IGPU_OPENCL_FAILED_TESTS "TestStlFunctionsDouble") # Runs out of resoruces with -j16?
 list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipStreamPerThread_MultiThread") 
 list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipStreamPerThread_DeviceReset_1") 
 list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipMemsetFunctional_PartialSet_3D") # SEGFAULT
-list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipMemset2DAsync_MultiThread") # SEGFAULT
 list(APPEND IGPU_OPENCL_FAILED_TESTS "hipStreamSemantics") # SEGFAULT
 list(APPEND IGPU_OPENCL_FAILED_TESTS "deviceMallocCompile") # Unimplemented
 list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipGraphAddEmptyNode_NegTest") # SEGFAULT
@@ -819,6 +820,7 @@ list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipTextureObj2DCheckModes")
 list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipEventRecord")
 
 # dGPU OpenCL Unit Test Failures
+list(APPEND DGPU_OPENCL_FAILED_TESTS "syncthreadsExitedThreads") # Timeout
 list(APPEND DGPU_OPENCL_FAILED_TESTS "Unit_hipGraphEventRecordNodeSetEvent_SetEventProperty") # flaky
 list(APPEND DGPU_OPENCL_FAILED_TESTS "Unit_hipGraphAddEventRecordNode_Functional_ElapsedTime") # flaky
 list(APPEND DGPU_OPENCL_FAILED_TESTS "Unit_hipEventRecord") # flaky
@@ -1146,7 +1148,6 @@ list(APPEND DGPU_LEVEL0_ICL_FAILED_TESTS "hipKernelLaunchIsNonBlocking")
 
 
 list(APPEND DGPU_LEVEL0_BASE_FAILED_TESTS "Unit_hipMultiThreadDevice_NearZero") # 
-list(APPEND DGPU_LEVEL0_BASE_FAILED_TESTS "Unit_hipMemset2DAsync_MultiThread") # Race condition 
 list(APPEND DGPU_LEVEL0_BASE_FAILED_TESTS "hipStreamSemantics") # SEGFAULT
 list(APPEND DGPU_LEVEL0_BASE_FAILED_TESTS "deviceMallocCompile") # Unimplemented
 list(APPEND DGPU_LEVEL0_BASE_FAILED_TESTS "Unit_hipGraphAddEmptyNode_NegTest") # SEGFAULT
@@ -1444,7 +1445,6 @@ list(APPEND IGPU_LEVEL0_RCL_FAILED_TESTS "Unit_hipMemsetFunctional_PartialSet_3D
 
 list(APPEND IGPU_LEVEL0_BASE_FAILED_TESTS "hip_sycl_interop") # Timeout Using MKL 2023.2.3 
 list(APPEND IGPU_LEVEL0_BASE_FAILED_TESTS "hip_sycl_interop_no_buffers") # Timeout Using MKL 2023.2.3 
-list(APPEND IGPU_LEVEL0_BASE_FAILED_TESTS "Unit_hipMemset2DAsync_MultiThread") # Race condition 
 list(APPEND IGPU_LEVEL0_BASE_FAILED_TESTS "hipStreamSemantics") # SEGFAULT
 list(APPEND IGPU_LEVEL0_BASE_FAILED_TESTS "deviceMallocCompile") # Unimplemented
 list(APPEND IGPU_LEVEL0_BASE_FAILED_TESTS "Unit_hipGraphAddEmptyNode_NegTest") # SEGFAULT
@@ -1921,7 +1921,6 @@ list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipMemPoolApi_BasicReuse") # Failed
 list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipMemPoolApi_Opportunistic") # Failed
 list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipMemPoolApi_Default") # Failed
 list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipMemset2DAsync_WithKernel") # Timeout
-list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipMemset2DAsync_MultiThread") # Timeout
 list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipMalloc_ArgumentValidation") # Failed
 list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipHostGetDevicePointer_NullCheck") # Failed
 list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipMemsetFunctional_PartialSet_1D") # Failed
@@ -2070,7 +2069,6 @@ list(APPEND CPU_POCL_FAILED_TESTS "hip_sycl_interop_no_buffers") # #terminate ca
 list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipMemset2D_BasicFunctional") # Timeout
 list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipMemset2DAsync_BasicFunctional") # Timeout
 list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipMemset2DAsync_WithKernel") # Timeout
-list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipMemset2DAsync_MultiThread") # Timeout
 list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipMemsetFunctional_ZeroValue_2D") # Timeout
 list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipMemsetASyncMulti") # Failed
 list(APPEND CPU_POCL_FAILED_TESTS "Unit_hipMemsetDASyncMulti - int8_t") # Failed
