@@ -865,6 +865,40 @@ void CHIPModuleOpenCL::compile(chipstar::Device *ChipDev) {
   }
 }
 
+chipstar::Kernel *CHIPModuleOpenCL::getKernel(const void *HostFPtr) {
+  //   "The state of the cl_kernel object is undefined if clSetKernelArg,
+  //   clSetKernelArgSVMPointer, clSetKernelExecInfo or clCloneKernel are called
+  //   from multiple host threads on the same cl_kernel object at the same
+  //   time."
+  //
+  // To avoid the UB, we create one kernel instance per thread.
+
+  LOCK(PerThreadKernelsMutex_);
+
+  Ptr2KernelMapT *Map = nullptr;
+  for (auto &KV : PerThreadKernels_) {
+    if (pthread_equal(KV.first, pthread_self())) {
+      Map = &KV.second;
+      break;
+    }
+  }
+
+  if (!Map) {
+    PerThreadKernels_.emplace_back(
+        std::make_pair(pthread_self(), Ptr2KernelMapT()));
+    Map = &PerThreadKernels_.back().second;
+  }
+
+  if (Map->count(HostFPtr))
+    return (*Map)[HostFPtr].get();
+
+  auto *OrigKernel =
+      static_cast<CHIPKernelOpenCL *>(chipstar::Module::getKernel(HostFPtr));
+  auto *ClonedKernel = OrigKernel->clone();
+  (*Map)[HostFPtr].reset(ClonedKernel);
+  return ClonedKernel;
+}
+
 chipstar::Queue *CHIPDeviceOpenCL::createQueue(chipstar::QueueFlags Flags,
                                                int Priority) {
   CHIPQueueOpenCL *NewQ = new CHIPQueueOpenCL(this, Priority);
@@ -1490,8 +1524,6 @@ std::shared_ptr<chipstar::Event> CHIPQueueOpenCL::enqueueBarrierImpl(
 // CHIPExecItemOpenCL
 //*************************************************************************
 
-cl::Kernel *CHIPExecItemOpenCL::get() { return ClKernel_; }
-
 void CHIPExecItemOpenCL::setupAllArgs() {
   if (!ArgsSetup) {
     ArgsSetup = true;
@@ -1599,11 +1631,7 @@ void CHIPExecItemOpenCL::setupAllArgs() {
 
 void CHIPExecItemOpenCL::setKernel(chipstar::Kernel *Kernel) {
   assert(Kernel && "Kernel is nullptr!");
-  // Make a clone of the kernel so the its cl_kernel object is not
-  // shared among other threads (sharing cl_kernel is discouraged by
-  // the OpenCL spec).
-  auto *Clone = static_cast<CHIPKernelOpenCL *>(Kernel)->clone();
-  ChipKernel_.reset(Clone);
+  ChipKernel_ = static_cast<CHIPKernelOpenCL *>(Kernel);
 
   // Arguments set on the original cl_kernel are not copied.
   ArgsSetup = false;

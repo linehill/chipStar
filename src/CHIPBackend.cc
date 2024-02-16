@@ -294,10 +294,6 @@ chipstar::Kernel *chipstar::Module::getKernel(const void *HostFPtr) {
   return *KernelFound;
 }
 
-std::vector<chipstar::Kernel *> &chipstar::Module::getKernels() {
-  return ChipKernels_;
-}
-
 chipstar::DeviceVar *chipstar::Module::getGlobalVar(const char *VarName) {
   auto VarFound = std::find_if(ChipVars_.begin(), ChipVars_.end(),
                                [VarName](chipstar::DeviceVar *Var) {
@@ -573,15 +569,6 @@ chipstar::Queue *chipstar::Device::getPerThreadDefaultQueueNoLock() {
   }
 
   return PerThreadDefaultQueue.get();
-}
-
-std::vector<chipstar::Kernel *> chipstar::Device::getKernels() {
-  std::vector<chipstar::Kernel *> ChipKernels;
-  for (auto &Kv : SrcModToCompiledMod_) {
-    for (chipstar::Kernel *Kernel : Kv.second->getKernels())
-      ChipKernels.push_back(Kernel);
-  }
-  return ChipKernels;
 }
 
 std::string chipstar::Device::getName() {

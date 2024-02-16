@@ -110,12 +110,20 @@ class CHIPModuleOpenCL : public chipstar::Module {
 protected:
   cl::Program Program_;
 
+  using Ptr2KernelMapT =
+      std::unordered_map<const void *, std::unique_ptr<CHIPKernelOpenCL>>;
+  // Vector is not preferred here. Wanted to use maps, but pthread_t ID
+  // can't be used as key (directly).
+  std::vector<std::pair<pthread_t, Ptr2KernelMapT>> PerThreadKernels_;
+  std::mutex PerThreadKernelsMutex_;
+
 public:
   CHIPModuleOpenCL(const SPVModule &SrcMod);
   virtual ~CHIPModuleOpenCL() {
     logTrace("CHIPModuleOpenCL::~CHIPModuleOpenCL");
   }
   virtual void compile(chipstar::Device *ChipDevice) override;
+  chipstar::Kernel *getKernel(const void *HostFPtr) override;
   cl::Program *get();
 };
 
@@ -350,16 +358,14 @@ public:
 
 class CHIPExecItemOpenCL : public chipstar::ExecItem {
 private:
-  std::unique_ptr<CHIPKernelOpenCL> ChipKernel_;
-  cl::Kernel *ClKernel_;
+  CHIPKernelOpenCL *ChipKernel_ = nullptr;
 
 public:
   CHIPExecItemOpenCL(const CHIPExecItemOpenCL &Other)
       : CHIPExecItemOpenCL(Other.GridDim_, Other.BlockDim_, Other.SharedMem_,
                            Other.ChipQueue_) {
     // TOOD Graphs Is this safe?
-    ClKernel_ = Other.ClKernel_;
-    ChipKernel_.reset(Other.ChipKernel_->clone());
+    ChipKernel_ = Other.ChipKernel_;
     // ChipKernel cloning currently does not copy the argument setup
     // of the cl_kernel, therefore, mark arguments being unset.
     this->ArgsSetup = false;
@@ -369,12 +375,8 @@ public:
                      hipStream_t ChipQueue)
       : ExecItem(GirdDim, BlockDim, SharedMem, ChipQueue) {}
 
-  virtual ~CHIPExecItemOpenCL() override {
-    // TODO delete ClKernel_?
-  }
   SPVFuncInfo FuncInfo;
   virtual void setupAllArgs() override;
-  cl::Kernel *get();
 
   virtual chipstar::ExecItem *clone() const override {
     auto NewExecItem = new CHIPExecItemOpenCL(*this);
@@ -382,7 +384,7 @@ public:
   }
 
   void setKernel(chipstar::Kernel *Kernel) override;
-  CHIPKernelOpenCL *getKernel() override { return ChipKernel_.get(); }
+  CHIPKernelOpenCL *getKernel() override { return ChipKernel_; }
 };
 
 class CHIPBackendOpenCL : public chipstar::Backend {

@@ -969,19 +969,12 @@ public:
   bool hasKernel(std::string Name);
 
   /**
-   * @brief Get the Kernels object
-   *
-   * @return std::vector<Kernel*>&
-   */
-  std::vector<chipstar::Kernel *> &getKernels();
-
-  /**
    * @brief Get the chipstar::Kernel object
    *
    * @param host_f_ptr host-side function pointer
    * @return Kernel*
    */
-  chipstar::Kernel *getKernel(const void *HostFPtr);
+  virtual chipstar::Kernel *getKernel(const void *HostFPtr);
 
   /**
    * @brief consume SPIRV and fill in SPVFuncINFO
@@ -1380,13 +1373,6 @@ public:
 
   /// Return the number of currently compiled modules on this device.
   size_t getNumCompiledModules() const { return SrcModToCompiledMod_.size(); }
-
-  /**
-   * @brief Get the Kernels object
-   *
-   * @return std::vector<Kernel*>&
-   */
-  std::vector<chipstar::Kernel *> getKernels();
 
   ModuleState getModuleState() const {
     ModuleState State;
