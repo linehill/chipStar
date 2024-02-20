@@ -1502,16 +1502,17 @@ static void syncMappedHostMemsAround(const chipstar::Device *Dev,
                                      std::initializer_list<const void *> Ptrs,
                                      std::function<void(void)> Fn) {
 
+  bool HasUA = Dev->hasUnifiedAddressing();
   for (const auto *Ptr : Ptrs)
     if (const auto *AI = Dev->AllocTracker->getAllocInfo(Ptr))
-      if (Dev->hasUnifiedAddressing() || AI->isMappedHostMem())
+      if (AI->isMappedHostMem(HasUA))
         ::Backend->getActiveDevice()->getDefaultQueue()->MemUnmap(AI);
 
   Fn();
 
   for (const auto *Ptr : Ptrs)
     if (const auto *AI = Dev->AllocTracker->getAllocInfo(Ptr))
-      if (Dev->hasUnifiedAddressing() || AI->isMappedHostMem())
+      if (AI->isMappedHostMem(HasUA))
         ::Backend->getActiveDevice()->getDefaultQueue()->MemMap(
             AI, chipstar::Queue::MEM_MAP_TYPE::HOST_READ_WRITE);
 }
@@ -1706,7 +1707,7 @@ chipstar::Queue::RegisteredVarCopy(chipstar::ExecItem *ExecItem,
   auto *Dev = ::Backend->getActiveDevice();
   auto &AllocTracker = Dev->AllocTracker;
   auto ArgVisitor = [&](const chipstar::AllocationInfo &AllocInfo) -> void {
-    if (Dev->hasUnifiedAddressing() || AllocInfo.isMappedHostMem()) {
+    if (AllocInfo.isMappedHostMem(Dev->hasUnifiedAddressing())) {
       logDebug("Sync host memory {} ({})", AllocInfo.HostPtr,
                (PreKernel ? "Unmap" : "Map"));
       if (PreKernel)

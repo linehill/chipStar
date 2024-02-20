@@ -467,10 +467,12 @@ struct AllocationInfo {
 
   /// True if a host allocation with hipHostRegisterMapped or
   /// hipHostMallocMapped flag.
-  ///
-  /// This query is unaffacted by unified addressing property.
-  bool isMappedHostMem() const noexcept {
-    return MemoryType == hipMemoryTypeHost && Flags.isMapped();
+  bool isMappedHostMem(bool HasUnifiedAddressing = false) const noexcept {
+    return MemoryType == hipMemoryTypeHost &&
+           (Flags.isMapped()
+            // hipMemoryTypeHost are implicitly mapped if device
+            // supports unified addressing.
+            || HasUnifiedAddressing);
   }
 };
 
