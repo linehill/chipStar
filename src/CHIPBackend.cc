@@ -1773,19 +1773,18 @@ void chipstar::Queue::launch(chipstar::ExecItem *ExItem) {
       if (Arg.Kind == SPVTypeKind::Pointer && !Arg.isWorkgroupPtr()) {
         void *PtrVal = *static_cast<void **>(const_cast<void *>(Arg.Data));
         InfoStr << " (" << PtrVal << ")";
+
+        // Non-mapped hipHostMalloc allocations are not accessible from
+        // kernels. Warn about this.
+        const auto *Dev = ::Backend->getActiveDevice();
+        if (const auto *AI = Dev->AllocTracker->getAllocInfo(PtrVal))
+          if (!Dev->hasUnifiedAddressing() &&
+              AI->MemoryType == hipMemoryTypeHost && !AI->Flags.isMapped())
+            logWarn("Passing non-mapped hipHostMalloc pointer to kernel."
+                    "\nKernel: {}"
+                    "\nArg position: {}",
+                    ExItem->getKernel()->getName(), Arg.Index);
       }
-
-      // Non-mapped hipHostMalloc allocations are not accessible from
-      // kernels. Warn about this.
-      const auto *Dev = ::Backend->getActiveDevice();
-      if (const auto *AI = Dev->AllocTracker->getAllocInfo(PtrVal))
-        if (!Dev->hasUnifiedAddressing() &&
-            AI->MemoryType == hipMemoryTypeHost && !AI->Flags.isMapped())
-          logWarn("Passing non-mapped hipHostMalloc pointer to kernel."
-                  "\nKernel: {}"
-                  "\nArg position: {}",
-                  KernelName, Arg.Index);
-
       InfoStr << "\n";
     };
     FuncInfo.visitKernelArgs(ExItem->getArgs(), Visitor);

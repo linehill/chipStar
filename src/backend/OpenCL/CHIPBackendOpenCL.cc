@@ -1245,7 +1245,7 @@ CHIPQueueOpenCL::launchImpl(chipstar::ExecItem *ExecItem) {
 #endif
 
   auto SvmAllocationsToKeepAlive =
-      annotateSvmPointers(*OclContext, *Kernel KernelHandle.get());
+      annotateSvmPointers(*OclContext, *Kernel, KernelHandle.get());
 
   auto SyncQueuesEventHandles = getSyncQueuesEventHandles();
   auto Status = clEnqueueNDRangeKernel(
