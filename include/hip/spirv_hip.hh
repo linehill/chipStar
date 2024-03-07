@@ -68,22 +68,22 @@ typedef int hipLaunchParm;
 #pragma push_macro("__DEVICE__")
 #define __DEVICE__ static __device__ __forceinline__
 
-extern "C" __device__ size_t _Z12get_local_idj(uint);
+extern "C" __device__ __attribute__((const)) size_t _Z12get_local_idj(uint);
 __DEVICE__ uint __hip_get_thread_idx_x() { return _Z12get_local_idj(0); }
 __DEVICE__ uint __hip_get_thread_idx_y() { return _Z12get_local_idj(1); }
 __DEVICE__ uint __hip_get_thread_idx_z() { return _Z12get_local_idj(2); }
 
-extern "C" __device__ size_t _Z12get_group_idj(uint);
+extern "C" __device__ __attribute__((const)) size_t _Z12get_group_idj(uint);
 __DEVICE__ uint __hip_get_block_idx_x() { return _Z12get_group_idj(0); }
 __DEVICE__ uint __hip_get_block_idx_y() { return _Z12get_group_idj(1); }
 __DEVICE__ uint __hip_get_block_idx_z() { return _Z12get_group_idj(2); }
 
-extern "C" __device__ size_t _Z14get_local_sizej(uint);
+extern "C" __device__ __attribute__((const)) size_t _Z14get_local_sizej(uint);
 __DEVICE__ uint __hip_get_block_dim_x() { return _Z14get_local_sizej(0); }
 __DEVICE__ uint __hip_get_block_dim_y() { return _Z14get_local_sizej(1); }
 __DEVICE__ uint __hip_get_block_dim_z() { return _Z14get_local_sizej(2); }
 
-extern "C" __device__ size_t _Z14get_num_groupsj(uint);
+extern "C" __device__ __attribute__((const)) size_t _Z14get_num_groupsj(uint);
 __DEVICE__ uint __hip_get_grid_dim_x() { return _Z14get_num_groupsj(0); }
 __DEVICE__ uint __hip_get_grid_dim_y() { return _Z14get_num_groupsj(1); }
 __DEVICE__ uint __hip_get_grid_dim_z() { return _Z14get_num_groupsj(2); }
