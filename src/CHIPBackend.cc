@@ -167,6 +167,7 @@ void chipstar::AllocationTracker::recordAllocation(
     // Map onto host so that the data can be potentially initialized on host
     ::Backend->getActiveDevice()->getDefaultQueue()->MemMap(
         AllocInfo, chipstar::Queue::MEM_MAP_TYPE::HOST_WRITE);
+    NumHostAllocations_ += 1;
   }
 
   if (MemoryType == hipMemoryTypeUnified)
@@ -1718,10 +1719,14 @@ chipstar::Queue::RegisteredVarCopy(chipstar::ExecItem *ExecItem,
   //       the kernel does not have any, we only need inspect kernels
   //       pointer arguments for allocations to be synchronized.
 
-  std::vector<std::shared_ptr<chipstar::Event>> CopyEvents;
-  auto PreKernel = ExecState == MANAGED_MEM_STATE::PRE_KERNEL;
   auto *Dev = ::Backend->getActiveDevice();
-  auto &AllocTracker = Dev->AllocTracker;
+  auto *AllocTracker = Dev->AllocTracker;
+  if (!AllocTracker->getNumHostAllocations() &&
+      !AllocTracker->getNumManagedAllocations())
+    return nullptr; // Nothing to synchronize.
+
+  auto PreKernel = ExecState == MANAGED_MEM_STATE::PRE_KERNEL;
+  std::vector<std::shared_ptr<chipstar::Event>> CopyEvents;
   auto ArgVisitor = [&](const chipstar::AllocationInfo &AllocInfo) -> void {
     if (AllocInfo.isMappedHostMem(Dev->hasUnifiedAddressing())) {
       logDebug("Sync host memory {} ({})", AllocInfo.HostPtr,
