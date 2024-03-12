@@ -103,11 +103,9 @@ public:
   SPVFuncInfo(const std::vector<SPVArgTypeInfo> &Info) : ArgTypeInfo_(Info) {}
 
   void visitClientArgs(ClientArgVisitor Fn) const;
-  void visitClientArgs(const std::vector<void *> &ArgList,
-                       ClientArgVisitor Fn) const;
+  void visitClientArgs(void **ArgList, ClientArgVisitor Fn) const;
   void visitKernelArgs(KernelArgVisitor Fn) const;
-  void visitKernelArgs(const std::vector<void *> &ArgList,
-                       KernelArgVisitor Fn) const;
+  void visitKernelArgs(void **ArgList, KernelArgVisitor Fn) const;
 
   /// Return visible kernel argument count.
   ///
@@ -122,10 +120,8 @@ public:
   bool hasByRefArgs() const { return SpilledArgs_.size(); }
 
 private:
-  void visitClientArgsImpl(const std::vector<void *> &ArgList,
-                           ClientArgVisitor Fn) const;
-  void visitKernelArgsImpl(const std::vector<void *> &ArgList,
-                           KernelArgVisitor Fn) const;
+  void visitClientArgsImpl(void **ArgList, ClientArgVisitor Fn) const;
+  void visitKernelArgsImpl(void **ArgList, KernelArgVisitor Fn) const;
   bool isSpilledArg(unsigned KernelArgIndex) const;
   unsigned getSpilledArgSize(unsigned KernelArgIndex) const;
 };

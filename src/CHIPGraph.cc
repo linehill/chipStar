@@ -136,8 +136,9 @@ CHIPGraphNodeKernel::CHIPGraphNodeKernel(const hipKernelNodeParams *TheParams)
                                       Params_.sharedMemBytes, nullptr);
   ExecItem_->setKernel(ChipKernel);
 
-  ExecItem_->copyArgs(TheParams->kernelParams);
-  ExecItem_->setupAllArgs();
+  assert(!"Disabled for experimentation.");
+  //ExecItem_->copyArgs(TheParams->kernelParams);
+  //ExecItem_->setupAllArgs();
 }
 
 CHIPGraphNodeKernel::CHIPGraphNodeKernel(const void *HostFunction, dim3 GridDim,
@@ -160,8 +161,9 @@ CHIPGraphNodeKernel::CHIPGraphNodeKernel(const void *HostFunction, dim3 GridDim,
   ExecItem_ = Backend->createExecItem(GridDim, BlockDim, SharedMem, nullptr);
   ExecItem_->setKernel(ChipKernel);
 
-  ExecItem_->copyArgs(Args);
-  ExecItem_->setupAllArgs();
+  assert(!"Disabled for experimentation.");
+  //ExecItem_->copyArgs(Args);
+  //ExecItem_->setupAllArgs();
 }
 
 int NodeCounter = 1;

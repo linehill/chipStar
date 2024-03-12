@@ -43,7 +43,8 @@ int main() {
 
   // Simulate client-side arguments.
   int a, b, c, d, e;
-  std::vector<void *> ArgList{&a, &b, &c, &d, &e};
+  std::vector<void *> ArgListVec{&a, &b, &c, &d, &e};
+  void **ArgList = static_cast<void **>(ArgListVec.data());
 
   // Test visitors.
 
@@ -60,7 +61,7 @@ int main() {
   ArgIdx = 0;
   FI.visitClientArgs(ArgList, [&](const SPVFuncInfo::ClientArg &Arg) {
     assert(Arg.Index == ArgIdx++);
-    assert(Arg.Data == ArgList.at(Arg.Index));
+    assert(Arg.Data == ArgListVec.at(Arg.Index));
     if (Arg.Index == 0)
       assert(Arg.Kind == SPVTypeKind::Pointer);
     else if (Arg.Index == 1)
@@ -93,25 +94,25 @@ int main() {
 
     if (Arg.Index == 0) {
       assert(Arg.Kind == SPVTypeKind::Pointer);
-      assert(Arg.Data == ArgList.at(0));
+      assert(Arg.Data == ArgListVec.at(0));
     } else if (Arg.Index == 1) {
       assert(Arg.Kind == SPVTypeKind::Image);
-      assert(Arg.Data == ArgList.at(1));
+      assert(Arg.Data == ArgListVec.at(1));
     } else if (Arg.Index == 2) {
       assert(Arg.Kind == SPVTypeKind::Sampler);
-      assert(Arg.Data == ArgList.at(1));
+      assert(Arg.Data == ArgListVec.at(1));
     } else if (Arg.Index == 3) {
       assert(Arg.Kind == SPVTypeKind::POD);
-      assert(Arg.Data == ArgList.at(2));
+      assert(Arg.Data == ArgListVec.at(2));
     } else if (Arg.Index == 4) {
       assert(Arg.Kind == SPVTypeKind::Image);
-      assert(Arg.Data == ArgList.at(3));
+      assert(Arg.Data == ArgListVec.at(3));
     } else if (Arg.Index == 5) {
       assert(Arg.Kind == SPVTypeKind::Sampler);
-      assert(Arg.Data == ArgList.at(3));
+      assert(Arg.Data == ArgListVec.at(3));
     } else if (Arg.Index == 6) {
       assert(Arg.Kind == SPVTypeKind::POD);
-      assert(Arg.Data == ArgList.at(4));
+      assert(Arg.Data == ArgListVec.at(4));
     } else if (Arg.Index == 7) {
       assert(Arg.Kind == SPVTypeKind::Pointer);
       assert(Arg.isWorkgroupPtr());
