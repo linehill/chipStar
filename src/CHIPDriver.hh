@@ -231,6 +231,7 @@ private:
   bool L0ImmCmdLists_ = true;
   unsigned long L0EventTimeout_ = 0;
   int L0CollectEventsTimeout_ = 0;
+  bool OpeCLDisableQueueProfiling_ = false;
 
 public:
   EnvVars() {
@@ -253,6 +254,9 @@ public:
       return UINT64_MAX;
 
     return L0EventTimeout_ * 1e9;
+  }
+  bool getOCLDisableQueueProfiling() const {
+    return OpeCLDisableQueueProfiling_;
   }
 
 private:
@@ -287,6 +291,12 @@ private:
 
     if (!readEnvVar("CHIP_L0_EVENT_TIMEOUT").empty())
       L0EventTimeout_ = parseInt("CHIP_L0_EVENT_TIMEOUT");
+
+    constexpr char OCLQueueProfilingEnv[] = "CHIP_OCL_DISABLE_QUEUE_PROFILING";
+    if (!readEnvVar(OCLQueueProfilingEnv).empty()) {
+      OpeCLDisableQueueProfiling_ = parseBoolean(OCLQueueProfilingEnv);
+      logDebug("{}={}", OCLQueueProfilingEnv, OpeCLDisableQueueProfiling_);
+    }
   }
 
   std::string_view parseJitFlags(const std::string &StrIn) {
