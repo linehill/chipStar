@@ -702,6 +702,11 @@ bool CHIPEventOpenCL::updateFinishStatus(bool ThrowErrorIfNotReady) {
 }
 
 float CHIPEventOpenCL::getElapsedTime(chipstar::Event *OtherIn) {
+  if (ChipEnvVars.getOCLDisableQueueProfiling())
+    CHIPERR_LOG_AND_THROW("hipEventElapsedTime() is unsupported with "
+                          "CHIP_OPENCL_DISABLE_QUEUE_PROFILING=1.",
+                          hipErrorTbd);
+
   // Why do I need to lock the context mutex?
   // Can I lock the mutex of this and the other event?
   //
@@ -1322,6 +1327,8 @@ CHIPQueueOpenCL::CHIPQueueOpenCL(chipstar::Device *ChipDevice, int Priority,
     //     CL_QUEUE_PROFILING_ENABLE, 0};
     cl_queue_properties QueueProperties[] = {CL_QUEUE_PROPERTIES,
                                              CL_QUEUE_PROFILING_ENABLE, 0};
+    if (ChipEnvVars.getOCLDisableQueueProfiling())
+      QueueProperties[1] = 0;
 
     const cl_command_queue Q = clCreateCommandQueueWithProperties(
         ClContext_->get(), ClDevice_->get(), QueueProperties, &Status);

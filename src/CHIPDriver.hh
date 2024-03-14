@@ -232,6 +232,7 @@ private:
   std::string JitFlags_ = CHIP_DEFAULT_JIT_FLAGS;
   bool L0ImmCmdLists_ = true;
   int L0CollectEventsTimeout_ = 0;
+  bool OpeCLDisableQueueProfiling_ = false;
 
 public:
   EnvVars() {
@@ -249,6 +250,9 @@ public:
   bool getLazyJit() const { return LazyJit_; }
   bool getL0ImmCmdLists() const { return L0ImmCmdLists_; }
   int getL0CollectEventsTimeout() const { return L0CollectEventsTimeout_; }
+  bool getOCLDisableQueueProfiling() const {
+    return OpeCLDisableQueueProfiling_;
+  }
 
 private:
   void parseEnvironmentVariables() {
@@ -279,6 +283,12 @@ private:
 
     if (!readEnvVar("CHIP_L0_COLLECT_EVENTS_TIMEOUT").empty())
       L0CollectEventsTimeout_ = parseInt("CHIP_L0_COLLECT_EVENTS_TIMEOUT");
+
+    constexpr char OCLQueueProfilingEnv[] = "CHIP_OCL_DISABLE_QUEUE_PROFILING";
+    if (!readEnvVar(OCLQueueProfilingEnv).empty()) {
+      OpeCLDisableQueueProfiling_ = parseBoolean(OCLQueueProfilingEnv);
+      logDebug("{}={}", OCLQueueProfilingEnv, OpeCLDisableQueueProfiling_);
+    }
   }
 
   std::string_view parseJitFlags(const std::string &StrIn) {
