@@ -233,6 +233,7 @@ private:
   int L0CollectEventsTimeout_ = 0;
   bool OpeCLDisableQueueProfiling_ = false;
   bool OCL1DevContexts_ = false;
+  std::optional<bool> UseIntelUSM_;
 
 public:
   EnvVars() {
@@ -260,6 +261,7 @@ public:
     return OpeCLDisableQueueProfiling_;
   }
   bool getOCLUse1DevContexts() const { return OCL1DevContexts_; }
+  std::optional<bool> useIntelUSM() const { return UseIntelUSM_; }
 
 private:
   void parseEnvironmentVariables() {
@@ -304,6 +306,12 @@ private:
     if (!readEnvVar(OCL1DevContextsEnv).empty()) {
       OCL1DevContexts_ = parseBoolean(OCL1DevContextsEnv);
       logDebug("{}={}", OCL1DevContextsEnv, OCL1DevContexts_);
+    }
+
+    constexpr char UseIntelUSMEnv[] = "CHIP_USE_INTEL_USM";
+    if (!readEnvVar(UseIntelUSMEnv).empty()) {
+      UseIntelUSM_ = parseBoolean(UseIntelUSMEnv);
+      logDebug("{}={}", UseIntelUSMEnv, *UseIntelUSM_);
     }
   }
 
