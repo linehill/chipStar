@@ -232,6 +232,7 @@ private:
   unsigned long L0EventTimeout_ = 0;
   int L0CollectEventsTimeout_ = 0;
   bool OpeCLDisableQueueProfiling_ = false;
+  bool OCL1DevContexts_ = false;
 
 public:
   EnvVars() {
@@ -258,6 +259,7 @@ public:
   bool getOCLDisableQueueProfiling() const {
     return OpeCLDisableQueueProfiling_;
   }
+  bool getOCLUse1DevContexts() const { return OCL1DevContexts_; }
 
 private:
   void parseEnvironmentVariables() {
@@ -296,6 +298,12 @@ private:
     if (!readEnvVar(OCLQueueProfilingEnv).empty()) {
       OpeCLDisableQueueProfiling_ = parseBoolean(OCLQueueProfilingEnv);
       logDebug("{}={}", OCLQueueProfilingEnv, OpeCLDisableQueueProfiling_);
+    }
+
+    constexpr char OCL1DevContextsEnv[] = "CHIP_OCL_1DEV_CONTEXTS";
+    if (!readEnvVar(OCL1DevContextsEnv).empty()) {
+      OCL1DevContexts_ = parseBoolean(OCL1DevContextsEnv);
+      logDebug("{}={}", OCL1DevContextsEnv, OCL1DevContexts_);
     }
   }
 

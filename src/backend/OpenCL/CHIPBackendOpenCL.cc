@@ -1742,7 +1742,9 @@ void CHIPBackendOpenCL::initializeImpl() {
 
   // Create context which has devices
   // Create queues that have devices each of which has an associated context
-  cl::Context Ctx(SupportedDevices);
+  cl::Context Ctx = ChipEnvVars.getOCLUse1DevContexts()
+                        ? cl::Context(Device)
+                        : cl::Context(SupportedDevices);
   CHIPContextOpenCL *ChipContext =
       new CHIPContextOpenCL(Ctx, Device, SelectedPlatform);
   ::Backend->addContext(ChipContext);
