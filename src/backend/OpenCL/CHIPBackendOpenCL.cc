@@ -1008,7 +1008,7 @@ CHIPContextOpenCL::CHIPContextOpenCL(cl::Context CtxIn, cl::Device Dev,
   if (auto UseIntelUSM = ChipEnvVars.useIntelUSM()) {
     if (*UseIntelUSM && !HasIntelUSM)
       logWarn("Enable Intel USM request ignored: not supported by the device.");
-    SupportsIntelUSM = HasIntelUSM && UseIntelUSM;
+    SupportsIntelUSM = HasIntelUSM && *UseIntelUSM;
   } else
     SupportsIntelUSM = HasIntelUSM;
 #else
