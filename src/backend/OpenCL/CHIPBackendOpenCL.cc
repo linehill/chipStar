@@ -1543,6 +1543,12 @@ void CHIPQueueOpenCL::switchModeTo(QueueMode ToMode) {
   if (QueueMode_ == ToMode)
     return;
 
+  if (ToMode == Profiling && ChipEnvVars.getOCLDisableQueueProfiling()) {
+    logWarn("Queue profiling is disabled. hipEventElapsedTime() calls will "
+            "return zero.");
+    return;
+  }
+
   // Can't switch mode if the queue is used for interop. Otherwise, we
   // may cause situations where commands enqueued via HIP and other
   // API end up be executed out of order.
