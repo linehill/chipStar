@@ -256,10 +256,32 @@ public:
 };
 
 class CHIPQueueOpenCL : public chipstar::Queue {
-protected:
-  // Any reason to make these private/protected?
-  cl::CommandQueue *ClQueue_;
+  // Profiling queue is known to slow down driver API calls on Intel
+  // OpenCL implementation but profiling is only needed for getting
+  // device timestamps for hipEventElapsed time. At start we use
+  // non-profiling queue and switch to profiling one when needed
+  // hipEventRecord is called.
+  //
+  // An alternative would be modifying the queue's properties via
+  // clSetCommandQueueProperty() but that's optional feature for the
+  // drivers.
+  cl::CommandQueue ClRegularQueue_;
+  cl::CommandQueue ClProfilingQueue_;
 
+  // Enumeration for indicating the currently active queue.
+  // TODO: spec mode transitions.
+  enum QueueMode {
+    Regular,  /// ClRegularQueue_ is active.
+    Profiling /// ClProfilingQueue_ is active.
+  };
+
+  QueueMode QueueMode_ = Regular;
+
+  /// Set to true when if this instance's command queue (one of the variant) is
+  /// shared with another API.
+  bool UsedInInterOp = false;
+
+protected:
   /**
    * @brief Map memory to device.
    *
@@ -319,6 +341,9 @@ public:
   memPrefetchImpl(const void *Ptr, size_t Count) override;
   std::vector<cl_event>
   addDependenciesQueueSync(std::shared_ptr<chipstar::Event> TargetEvent);
+
+private:
+  void switchModeTo(QueueMode Mode);
 };
 
 // Used for a kernel pool with a custom deleter that, instead of
