@@ -255,6 +255,13 @@ public:
   bool hasBallot() const noexcept { return HasSubgroupBallot_; }
 };
 
+template <typename T>
+static void CL_CALLBACK deleteArrayCallback(cl_event Event,
+                                            cl_int CommandExecStatus,
+                                            void *UserData) {
+  delete[] static_cast<T *>(UserData);
+}
+
 class CHIPQueueOpenCL : public chipstar::Queue {
 protected:
   // Any reason to make these private/protected?
@@ -319,6 +326,23 @@ public:
   memPrefetchImpl(const void *Ptr, size_t Count) override;
   std::pair<std::vector<cl_event>, chipstar::LockGuardVector>
   addDependenciesQueueSync(std::shared_ptr<chipstar::Event> TargetEvent);
+
+  /// Enqueues a virtual command that deletes the give host array
+  /// after previously enqueud commands have finished.
+  ///
+  /// Precondition: HostPtr must be a valid pointer to a host allocation
+  /// created with new T[].
+  template <typename T>
+  cl_int enqueueDeleteHostArray(T *HostPtr) {
+    assert(HostPtr);
+    cl::Event CallbackEv;
+    auto Status = ClQueue_->enqueueMarkerWithWaitList(nullptr, &CallbackEv);
+    if (Status != CL_SUCCESS)
+      return Status;
+
+    return CallbackEv.setCallback(CL_COMPLETE, deleteArrayCallback<T>,
+                                  reinterpret_cast<void *>(HostPtr));
+  }
 };
 
 class CHIPKernelOpenCL : public chipstar::Kernel {
