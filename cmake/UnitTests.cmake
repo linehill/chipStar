@@ -31,11 +31,8 @@ list(APPEND FAILING_FOR_ALL "Unit_hipCreateTextureObject_ArgValidation") # Subpr
 list(APPEND FAILING_FOR_ALL "Unit_hipCreateTextureObject_LinearResource") # Subprocess aborted
 list(APPEND FAILING_FOR_ALL "Unit_hipCreateTextureObject_Pitch2DResource") # Subprocess aborted
 list(APPEND FAILING_FOR_ALL "Unit_hipGetChannelDesc_CreateAndGet") # Failed
-list(APPEND FAILING_FOR_ALL "Unit_hipTextureObj1DCheckRGBAModes - array") # Failed
 list(APPEND FAILING_FOR_ALL "Unit_hipTextureObj1DCheckSRGBAModes - array") # Failed
-list(APPEND FAILING_FOR_ALL "Unit_hipTextureObj1DCheckRGBAModes - buffer") # Failed
 list(APPEND FAILING_FOR_ALL "Unit_hipTextureObj1DCheckSRGBAModes - buffer") # Failed
-list(APPEND FAILING_FOR_ALL "Unit_hipTextureObj2DCheckRGBAModes") # Failed
 list(APPEND FAILING_FOR_ALL "Unit_hipTextureObj2DCheckSRGBAModes") # Failed
 list(APPEND FAILING_FOR_ALL "Unit_hipMallocArray_MaxTexture_Default - uint") # Failed
 list(APPEND FAILING_FOR_ALL "Unit_hipMallocArray_MaxTexture_Default - int4") # Failed
@@ -714,18 +711,6 @@ list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipGetLastError_Positive_Threaded") #
 list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipPeekAtLastError_Positive_Basic") # Failed
 list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipPeekAtLastError_Positive_Threaded") # Subprocess aborted
 list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipGraphMemcpyNodeSetParams_Functional") # Subprocess aborted
-list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipTexObjPitch_texture2D - float")
-list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipTexObjPitch_texture2D - int")
-list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipTexObjPitch_texture2D - unsigned char")
-list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipTexObjPitch_texture2D - int16_t")
-list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipTexObjPitch_texture2D - char")
-list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipTexObjPitch_texture2D - unsigned int")
-list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipTextureFetch_vector") 
-list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipTextureObj2D_Check")
-list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipCreateTextureObject_tex1DfetchVerification")
-list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_tex1Dfetch_CheckModes")
-list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipTextureObj1DCheckModes")
-list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipTextureObj2DCheckModes")
 list(APPEND IGPU_OPENCL_FAILED_TESTS "Unit_hipEventRecord")
 
 # dGPU OpenCL Unit Test Failures
